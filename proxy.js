@@ -46,6 +46,10 @@ app.get('/logo_x.svg', (req, res) => {
   res.sendFile(__dirname + '/temp_logo.svg');
 });
 
+app.get('/health-check', (req, res) => {
+  res.send('Serving Proxy');
+});
+
 app.use('/', createProxyMiddleware({
   target: TARGET,
   changeOrigin: true,
