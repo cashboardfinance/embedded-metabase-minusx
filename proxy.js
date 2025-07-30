@@ -48,6 +48,7 @@ app.get('/logo_x.svg', (req, res) => {
 
 app.get('/health-check', (req, res) => {
   res.send('Serving Proxy');
+  return;
 });
 
 app.use('/', createProxyMiddleware({
@@ -55,6 +56,7 @@ app.use('/', createProxyMiddleware({
   changeOrigin: true,
   selfHandleResponse: true,
   on: {
+    
    proxyRes: responseInterceptor(async (responseBuffer, proxyRes, req, res) => {
       // Handle JWT cookie setting for /auth/sso requests
       if (req.url.startsWith('/auth/sso')) {
