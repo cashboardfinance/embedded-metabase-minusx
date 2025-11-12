@@ -1,18 +1,7 @@
-:root {
-    --chakra-colors-minusxBW-200: #ffffff;
-    --chakra-colors-minusxBW-300: #f5f8fa;
-    --chakra-colors-minusxGreen-400: #36b374;
-    --chakra-colors-minusxGreen-500: #36b374;
-    --chakra-colors-minusxGreen-600: #36b374;
-    --chakra-colors-minusxGreen-700: #36b374;
-    --chakra-colors-minusxGreen-800: #36b374;
-    --chakra-colors-chakra-border-color: #e3e9ed;
-}
-
-[aria-label="mx-logos"] {
+/* [aria-label="mx-logos"] {
     opacity: 0;
     height: 0;
-}
+} */
 
 body, * {
     font-family: 'Inter', system-ui, sans-serif !important;
@@ -26,25 +15,29 @@ body, * {
     font-family: 'Inter', sans-serif;
 }
 
-[aria-label="welcome-message"] {
+/* [aria-label="welcome-message"] {
+    display: none;
+} */
+
+[aria-label="settings-toggle"] {
     display: none;
 }
 
-img[alt="MinusX"] {
+/* img[alt="MinusX"] {
     display: none;
-}
+} */
 
-[aria-label="chat-container"] {
+/* [aria-label="chat-container"] {
     background: white;
-}
+} */
 
 [aria-label="quick-actions"] {
     display: none;
 }
 
-[aria-label="context-info"] {
+/* [aria-label="context-info"] {
     display: none;
-}
+} */
 
 [aria-label="mx-mode"] {
     display: none;
@@ -54,14 +47,14 @@ img[alt="MinusX"] {
     display: none;
 }
 
-[aria-label="tasks-panel-content"] {
+/* [aria-label="tasks-panel-content"] {
     background: white;
     border: 1px solid #B4BDC2 !important;
 }
 
 [aria-label="tasks-tree"] {
     background: white;
-}
+} */
 
 [aria-label="login-highlights"] {
     display: none;
@@ -71,15 +64,15 @@ img[alt="MinusX"] {
     display: none;
 }
 
-[aria-label="suggestions"] {
+/* [aria-label="suggestions"] {
     display: none;
-}
+} */
 
 [aria-label="message-arrow"] {
     display: none;
 }
 
-[aria-label="assistant-message-bubble"] {
+/* [aria-label="assistant-message-bubble"] {
     background: white;
     padding: 0px;
     color: #000000;
@@ -92,10 +85,10 @@ img[alt="MinusX"] {
 
 [aria-label="assistant-message-bubble"] a {
     color: #2c915e !important;
-}
+} */
 
 
-[aria-label="planning-bubble"] {
+/* [aria-label="planning-bubble"] {
     color: #6A7278;
     background: #ffffff;
     border: #B4BDC2 1px solid;
@@ -109,7 +102,7 @@ img[alt="MinusX"] {
     background: #ffffff;
     border: #B4BDC2 1px solid;
     color: #6A7278;
-}
+} */
 
 
 [aria-label="thinking-content"] {
@@ -122,11 +115,11 @@ img[alt="MinusX"] {
     margin-bottom: 12px;
 }
 
-[aria-label="mx-badge"] {
+/* [aria-label="mx-badge"] {
     background: #E3E9ED;
     color: #6A7278;
 }
 [aria-label="card-link"] {
     background: #E3E9ED;
     color: #6A7278;
-}
+} */

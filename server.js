@@ -8,13 +8,42 @@ const jwt = require("jsonwebtoken");
 const METABASE_SITE_URL = process.env.PROXY_URL || "http://localhost:9091";
 const METABASE_JWT_SHARED_SECRET = process.env.METABASE_JWT_SHARED_SECRET;
 const MX_JWT_SHARED_SECRET = process.env.MX_JWT_SHARED_SECRET;
-const METABASE_DASHBOARD_PATH = process.env.METABASE_DASHBOARD_PATH || "/dashboard/1-e-commerce-insights";
-const METABASE_EDITOR_PATH = process.env.METABASE_EDITOR_PATH || "/question/139-demo-mbql/notebook";
-const mods = "top_nav=false";
+// const METABASE_DASHBOARD_PATH = process.env.METABASE_DASHBOARD_PATH || "/dashboard/1-e-commerce-insights";
+// const METABASE_EDITOR_PATH = process.env.METABASE_EDITOR_PATH || "/question/139-demo-mbql/notebook";
+const mods = "header=false&action_buttons=false&top_nav=false&side_nav=false";
+
+// Demo pages configuration
+const demoPages = [
+  {
+    name: 'Dashboard Q&A',
+    path: '/dashboard',
+    iframePath: '/dashboard/36-sales-overview',
+    icon: 'bar-chart-2'
+  },
+  {
+    name: 'Question Builder',
+    path: '/mbql',
+    iframePath: '/question/139-demo-mbql',
+    icon: 'edit-3'
+  },
+  {
+    name: 'Edit SQL Query',
+    path: '/sql-edit',
+    iframePath: '/question/138-demo-sql',
+    icon: 'database'
+  },
+  {
+    name: 'New SQL Query',
+    path: '/sql-new',
+    iframePath: '/question#eyJkYXRhc2V0X3F1ZXJ5Ijp7ImRhdGFiYXNlIjoxLCJ0eXBlIjoibmF0aXZlIiwibmF0aXZlIjp7InF1ZXJ5IjoiIiwidGVtcGxhdGUtdGFncyI6e319fSwiZGlzcGxheSI6InRhYmxlIiwidmlzdWFsaXphdGlvbl9zZXR0aW5ncyI6e30sInR5cGUiOiJxdWVzdGlvbiJ9',
+    icon: 'plus-circle'
+  }
+];
 
 var app = (module.exports = express());
 
 app.use(express.urlencoded({ extended: false }));
+app.use(express.static('.'));
 
 // Configure session middleware
 app.use(session({
@@ -32,14 +61,7 @@ const users = [
     email: 'rene2@minusx.ai',
     accountId: 28,
     accountName: 'Customer-Acme',
-  },
-  {
-    firstName: 'Cecilia',
-    lastName: 'Stark',
-    email: 'cecilia@example.com',
-    accountId: 132,
-    accountName: 'Customer-Fake',
-  },
+  }
 ];
 
 
@@ -61,7 +83,8 @@ const signUserToken = (user) =>
 const signMXToken = (username) =>
   jwt.sign(
     {
-      username,
+    //   username, // username is supported as well
+      email: `${username}@domain.com`, // OR email should be provided
       exp: Math.round(Date.now() / 1000) + 60 * 10, // 10 minute expiration
     },
     MX_JWT_SHARED_SECRET
@@ -70,15 +93,29 @@ const signMXToken = (username) =>
 
 
 app.get("/", function (req, res) {
-    res.redirect("/analytics");
+    res.redirect("/dashboard");
 });
 
-app.get("/analytics", function (req, res) {
-    res.send(generateDashboardPage(req, METABASE_DASHBOARD_PATH, 'dashboard'));
+demoPages.forEach(page => {
+    app.get(page.path, function (req, res) {
+        res.send(generatePage(req, page.iframePath, page.path.replace('/', '')));
+    });
 });
 
-app.get("/editor", function (req, res) {
-    res.send(generateDashboardPage(req, METABASE_EDITOR_PATH, 'editor'));
+app.get("/question/:id?", function (req, res) {
+    const questionId = req.params.id;
+    const hash = decodeURIComponent(req.query.hash || "");
+    
+    let directUrl;
+    if (questionId && questionId.trim()) {
+        directUrl = `${METABASE_SITE_URL}/question/${questionId}`;
+    } else if (hash) {
+        directUrl = `${METABASE_SITE_URL}/question#${hash}`;
+    } else {
+        directUrl = `${METABASE_SITE_URL}/question`;
+    }
+    
+    res.send(generatePage(req, directUrl, 'question', true));
 });
 
 // SSO route for Metabase authentication
@@ -99,14 +136,16 @@ app.get('/sso/metabase', (req, res) => {
 });
 
 
-const generateDashboardPage = (req, embedPath, activeMenuItem) => {
-    const iframeUrl = `/sso/metabase?return_to=${embedPath}`;
+const generatePage = (req, urlOrPath, activeMenuItem, isDirectUrl = false) => {
+    const iframeUrl = isDirectUrl ? urlOrPath : `/sso/metabase?return_to=${urlOrPath}`;
     return `<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Acme App</title>
+        <title>MinusX Embedded Demo</title>
+        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <script src="https://unpkg.com/feather-icons"></script>
         <style>
             * {
                 margin: 0;
@@ -115,38 +154,69 @@ const generateDashboardPage = (req, embedPath, activeMenuItem) => {
             }
             
             body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-                background-color: #fefefe;
+                font-family: 'JetBrains Mono', monospace;
+                background-color: #0a0a0a;
                 height: 100vh;
                 overflow: hidden;
+                color: #f5f5f5;
             }
             
             .header {
-                background: linear-gradient(to right, #f8fafc, #f1f5f9);
-                color: #1f2937;
+                background: #111111;
+                color: #f5f5f5;
                 padding: 1.25rem 2rem;
-                border-bottom: 1px solid #e2e8f0;
+                border-bottom: 1px solid #333333;
                 position: relative;
                 z-index: 1000;
-                box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .header-left {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .logo {
+                width: 32px;
+                height: 32px;
+                background: #00ff00;
+                border: 1px solid #00ff00;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 700;
+                font-size: 0.875rem;
+                color: #000000;
             }
             
             .header h1 {
-                font-size: 1.5rem;
-                font-weight: 700;
-                color: #1e293b;
-                letter-spacing: -0.025em;
+                font-size: 1.125rem;
+                font-weight: 500;
+                color: #f5f5f5;
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
+            }
+            
+            .header-right {
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+                font-size: 0.875rem;
+                color: #a0a0a0;
             }
             
             .container {
                 display: flex;
-                height: calc(100vh - 70px);
+                height: calc(100vh - 88px);
             }
             
             .sidebar {
-                width: 280px;
-                background: #ffffff;
-                border-right: 1px solid #e5e7eb;
+                width: 240px;
+                background: #0f0f0f;
+                border-right: 1px solid #333333;
                 display: flex;
                 flex-direction: column;
                 overflow-y: auto;
@@ -157,145 +227,193 @@ const generateDashboardPage = (req, embedPath, activeMenuItem) => {
                 padding: 2rem 0;
             }
             
-            .sidebar-header {
-                padding: 0 2rem 1.5rem;
-                border-bottom: 1px solid #f3f4f6;
-                margin-bottom: 1.5rem;
+            .nav-section {
+                margin-bottom: 2rem;
             }
             
-            .sidebar-header h3 {
-                color: #374151;
-                font-size: 1rem;
+            .nav-section h3 {
+                color: #00ff00;
+                font-size: 0.75rem;
                 font-weight: 600;
                 text-transform: uppercase;
-                letter-spacing: 0.05em;
+                letter-spacing: 0.15em;
+                padding: 0 1.5rem;
+                margin-bottom: 0.75rem;
             }
             
             .menu-item {
                 display: flex;
                 align-items: center;
-                padding: 0.75rem 2rem;
-                color: #6b7280;
+                padding: 0.75rem 1.5rem;
+                color: #a0a0a0;
                 text-decoration: none;
                 transition: all 0.15s ease;
-                font-weight: 500;
+                font-weight: 400;
+                font-size: 0.8rem;
+                border-left: 2px solid transparent;
             }
             
             .menu-item:hover {
-                background-color: #f9fafb;
-                color: #374151;
+                background-color: #1a1a1a;
+                color: #f5f5f5;
+                border-left: 2px solid #00ff00;
             }
             
             .menu-item.active {
-                background-color: #f3f4f6;
-                color: #111827;
-                border-right: 2px solid #d1d5db;
+                background-color: #1a1a1a;
+                color: #00ff00;
+                border-left: 2px solid #00ff00;
+                font-weight: 600;
             }
             
             .menu-item-icon {
-                width: 20px;
-                height: 20px;
-                margin-right: 12px;
-                opacity: 0.7;
+                width: 16px;
+                height: 16px;
+                margin-right: 0.75rem;
+                opacity: 0.6;
+                stroke-width: 2;
+            }
+            
+            .menu-item:hover .menu-item-icon,
+            .menu-item.active .menu-item-icon {
+                opacity: 1;
             }
             
             .main-content {
                 flex: 1;
-                padding: 2rem;
-                background-color: #f9fafb;
+                padding: 1.5rem;
+                background-color: #0a0a0a;
                 overflow: hidden;
             }
             
             .dashboard-container {
-                background: #ffffff;
-                border-radius: 8px;
-                border: 1px solid #e5e7eb;
+                background: #111111;
+                border-radius: 4px;
+                border: 1px solid #333333;
                 height: 100%;
                 overflow: hidden;
+                box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
             }
             
             #metabase {
                 width: 100%;
                 height: 100%;
                 border: none;
-                border-radius: 8px;
+                border-radius: 4px;
+                filter: contrast(1.1) brightness(0.95);
             }
             
             .user-info {
-                padding: 1.5rem 2rem;
-                border-top: 1px solid #f3f4f6;
-                background-color: #f9fafb;
+                padding: 1.25rem 1.5rem;
+                border-top: 1px solid #333333;
+                background-color: #0f0f0f;
                 margin-top: auto;
             }
             
             .user-profile {
                 display: flex;
                 align-items: center;
-                color: #6b7280;
-                font-size: 0.875rem;
+                color: #a0a0a0;
+                font-size: 0.8rem;
             }
             
             .user-avatar {
                 width: 32px;
                 height: 32px;
-                border-radius: 50%;
-                background-color: #d1d5db;
+                border: 1px solid #00ff00;
+                background-color: #000000;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                color: #374151;
+                color: #00ff00;
                 font-weight: 600;
-                margin-right: 10px;
-                font-size: 0.875rem;
+                margin-right: 0.75rem;
+                font-size: 0.75rem;
             }
             
-            .logout-link {
-                color: #6b7280;
-                text-decoration: none;
-                font-size: 0.8rem;
-                margin-top: 0.5rem;
-                display: inline-block;
+            .user-name {
                 font-weight: 500;
+                color: #f5f5f5;
+                margin-bottom: 0.125rem;
             }
             
-            .logout-link:hover {
-                color: #374151;
-                text-decoration: underline;
+            .user-company {
+                font-size: 0.7rem;
+                color: #666666;
+            }
+            
+            .cta-button {
+                background: transparent;
+                color: #00ff00;
+                padding: 0.625rem 1.25rem;
+                border: 1px solid #00ff00;
+                border-radius: 2px;
+                font-size: 0.8rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.15s ease;
+                text-decoration: none;
+                display: inline-block;
+                font-family: 'JetBrains Mono', monospace;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            
+            .cta-button:hover {
+                background: #00ff00;
+                color: #000000;
+                box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
             }
         </style>
     </head>
     <body>
         <div class="header">
-            <h1>Acme App</h1>
+            <div class="header-left">
+                <img src="https://web.minusxapi.com/logo_x_light.svg" alt="Logo" style="height: 32px; width: auto;" />
+                <h1>MinusX Embedded Demo</h1>
+            </div>
+            <div class="header-right">
+                <button class="cta-button" onclick="window.open('https://cal.com/vivek-aithal/minusx-embedded-demo', '_blank')">Add MinusX to Your App</button>
+            </div>
         </div>
         
         <div class="container">
             <div class="sidebar">
                 <div class="sidebar-content">
+                    <div class="nav-section">
+                        <h3>Demo Pages</h3>
+                        ${demoPages.map(page => `
+                        <a href="${page.path}" class="menu-item ${activeMenuItem === page.path.replace('/', '') ? 'active' : ''}">
+                            <i data-feather="${page.icon}" class="menu-item-icon"></i>
+                            ${page.name}
+                        </a>`).join('')}
+                    </div>
                     
-                    <a href="/analytics" class="menu-item ${activeMenuItem === 'dashboard' ? 'active' : ''}">
-                        <svg class="menu-item-icon" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
-                        </svg>
-                        Dashboard
-                    </a>
-                    
-                    <a href="/editor" class="menu-item ${activeMenuItem === 'editor' ? 'active' : ''}">
-                        <svg class="menu-item-icon" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                        </svg>
-                        Question Builder
-                    </a>
+                    <div class="nav-section">
+                        <h3>Additional Info</h3>
+                        <a href="#" onclick="window.open('https://minusx.ai/embedded-metabase-ai/', '_blank')" class="menu-item">
+                            <i data-feather="info" class="menu-item-icon"></i>
+                            Website
+                        </a>
+                        <a href="#" onclick="window.open('https://docs.minusx.ai/en/collections/10790008-minusx-in-metabase', '_blank')" class="menu-item">
+                            <i data-feather="book" class="menu-item-icon"></i>
+                            MinusX Docs
+                        </a>
+                        <a href="#" onclick="window.open('https://cal.com/vivek-aithal/minusx-embedded-demo', '_blank')" class="menu-item">
+                            <i data-feather="users" class="menu-item-icon"></i>
+                            Talk to CoFounders
+                        </a>
+                    </div>
                 </div>
                 
                 <div class="user-info">
                     <div class="user-profile">
                         <div class="user-avatar">
-                            ${req.session && req.session.user ? req.session.user.firstName.charAt(0).toUpperCase() : 'R'}
+                            MX
                         </div>
                         <div>
-                            <div>${req.session && req.session.user ? req.session.user.firstName + ' ' + req.session.user.lastName : 'Rene Mueller'}</div>
-                            <div style="font-size: 0.75rem; opacity: 0.7;">${req.session && req.session.user ? req.session.user.accountName : 'Customer-Acme'}</div>
+                            <div class="user-name">MinusX User</div>
+                            <div class="user-company">Embedded Analytics</div>
                         </div>
                     </div>
                 </div>
@@ -307,6 +425,11 @@ const generateDashboardPage = (req, embedPath, activeMenuItem) => {
                 </div>
             </div>
         </div>
+        
+        <script>
+            // Initialize Feather icons
+            feather.replace();
+        </script>
     </body>
 </html>`;
 };
