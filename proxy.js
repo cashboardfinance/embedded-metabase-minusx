@@ -20,7 +20,7 @@ const MX_DEV_BUILD_PATH = '../minusx/extension/build';
 const rewriteUrls = [
   '/contentScript.bundle.js',
   '/content.styles.css',
-  '/logo_x.svg',
+  // '/logo_x.svg',
   '/metabase.bundle.js',
 ]
 
