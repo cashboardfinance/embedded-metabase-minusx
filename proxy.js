@@ -42,7 +42,7 @@ if (MX_DEV_MODE) {
 }
 
 app.get('/minusx.css', (req, res) => {
-  res.sendFile(__dirname + '/custom.css');
+  res.sendFile(__dirname + '/custom_v2.css');
 });
 
 // Serve local logo instead of from EXTENSION_TARGET
