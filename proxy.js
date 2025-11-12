@@ -48,6 +48,8 @@ app.get('/minusx.css', (req, res) => {
 // Serve local logo instead of from EXTENSION_TARGET
 app.get('/logo_x.svg', (req, res) => {
   res.sendFile(__dirname + '/temp_logo.svg');
+});
+
 // Check cache first for static assets
 app.use('/', (req, res, next) => {
   const contentType = req.headers.accept || '';
