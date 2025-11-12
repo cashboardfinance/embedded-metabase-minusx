@@ -41,24 +41,13 @@ if (MX_DEV_MODE) {
   }
 }
 
-// Serve custom configs for /minusx.json requests
-app.get('/minusx.json', cors(), (req, res) => {
-  // Returns {}
-  res.json({
-    "embed_host": EMBED_HOST
-  });
-});
-
-// Serve custom.css for /minusx.css requests
 app.get('/minusx.css', (req, res) => {
-  res.sendFile(__dirname + '/css_blog.css');
+  res.sendFile(__dirname + '/custom.css');
 });
 
 // Serve local logo instead of from EXTENSION_TARGET
-// app.get('/logo_x.svg', (req, res) => {
-//   res.sendFile(__dirname + '/temp_logo.svg');
-// });
-
+app.get('/logo_x.svg', (req, res) => {
+  res.sendFile(__dirname + '/temp_logo.svg');
 // Check cache first for static assets
 app.use('/', (req, res, next) => {
   const contentType = req.headers.accept || '';
