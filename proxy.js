@@ -74,19 +74,23 @@ app.use('/', (req, res, next) => {
   next();
 });
 
-// Reject PUT and DELETE requests to /api/dashboard/:id with 403
-app.put('/api/dashboard/:id', (req, res) => {
-  res.status(403).json({ error: 'Dashboard updates are not allowed' });
-});
 
-app.delete('/api/dashboard/:id', (req, res) => {
-  res.status(403).json({ error: 'Dashboard deletion is not allowed' });
-});
 
 app.get('/health-check', (req, res) => {
   res.send('Serving Proxy');
   return;
 });
+
+// Export downloads (csv/xlsx/json) can be hundreds of MB; the interceptor
+// below buffers whole responses in memory, which exhausts RAM on this box
+// and stalls every other request. Stream exports straight through instead.
+app.use(createProxyMiddleware({
+  target: TARGET,
+  changeOrigin: true,
+  pathFilter: (pathname) => /(\/query\/(csv|xlsx|json)|^\/api\/dataset\/(csv|xlsx|json))$/.test(pathname),
+  proxyTimeout: 600000,
+  timeout: 600000,
+}));
 
 app.use('/', createProxyMiddleware({
   target: TARGET,
@@ -102,7 +106,6 @@ app.use('/', createProxyMiddleware({
       const isStaticAsset = contentType.includes('application/javascript') || 
         contentType.includes('text/javascript') || 
         contentType.includes('text/css') ||
-        contentType.includes('application/json') ||
         contentType.startsWith('font/') ||
         req.url.endsWith('.js') || 
         req.url.endsWith('.css') ||
